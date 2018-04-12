@@ -16,6 +16,7 @@ package com.example.android.shushme;
 * limitations under the License.
 */
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -30,6 +31,7 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
+import com.example.android.shushme.provider.PlaceContract;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -141,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     // DONE (3) Implement onActivityResult and check that the requestCode is PLACE_PICKER_REQUEST
-    // TODO (4) In onActivityResult, use PlacePicker.getPlace to extract the Place ID and insert it into the DB
+    // DONE (4) In onActivityResult, use PlacePicker.getPlace to extract the Place ID and insert it into the DB
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PLACE_PICKER_REQUEST){
@@ -149,6 +151,10 @@ public class MainActivity extends AppCompatActivity implements
                 Place place = PlacePicker.getPlace(this, data);
                 String toast = String.format("Place : %s", place.getName());
                 Toast.makeText(this, toast, Toast.LENGTH_SHORT).show();
+
+                ContentValues values = new ContentValues();
+                values.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, place.getId());
+                getContentResolver().insert(PlaceContract.PlaceEntry.CONTENT_URI, values);
             }
         }
     }
