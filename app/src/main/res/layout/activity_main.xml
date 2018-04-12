@@ -63,14 +63,23 @@
                         and set the checkbox click listener to call onLocationPermissionClicked -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginRight="8dp"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/ic_my_location_primary_24dp"/>
 
             <CheckBox
                 android:id="@+id/locationPermissionCheckBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Location Permission Granted"
+                android:layout_gravity="center_vertical"
+                android:text="@string/location_permission"
                 android:onClick="onLocationPermissionClicked"/>
 
         </LinearLayout>
@@ -82,7 +91,8 @@
             android:background="@color/colorPrimary"
             android:text="@string/add_new_location"
             android:textAppearance="@style/TextAppearance.AppCompat.Button"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:onClick="onAddPlaceBtnClicked"/>
 
         <TextView
             android:layout_width="wrap_content"

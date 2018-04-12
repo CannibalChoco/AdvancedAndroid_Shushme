@@ -16,18 +16,22 @@ package com.example.android.shushme;
 * limitations under the License.
 */
 
+import android.Manifest;
 import android.app.LoaderManager;
 import android.content.Loader;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.CheckBox;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements
 
     // Constants
     public static final String TAG = MainActivity.class.getSimpleName();
+
+    private static final int LOCATION_PERMISSION = 0;
 
     // Member variables
     private PlaceListAdapter mAdapter;
@@ -80,21 +86,30 @@ public class MainActivity extends AppCompatActivity implements
         super.onResume();
 
         locationPermissionCheckBox = findViewById(R.id.locationPermissionCheckBox);
+
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            locationPermissionCheckBox.setChecked(false);
+        } else {
+            locationPermissionCheckBox.setChecked(true);
+            locationPermissionCheckBox.setEnabled(false);
+
+        }
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.d(TAG, "Connected");
+        Log.d(TAG, "Api Client Connection Successful");
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.d(TAG, "Connection suspended");
+        Log.d(TAG, "Api Client Connection Suspended");
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d(TAG, "Connection failed");
+        Log.d(TAG, "Api Client Connection Failed");
     }
 
     @Override
@@ -115,10 +130,20 @@ public class MainActivity extends AppCompatActivity implements
     // DONE (5) Override onConnected, onConnectionSuspended and onConnectionFailed for GoogleApiClient
 
     // DONE (8) Implement onLocationPermissionClicked to handle the CheckBox click event
-    private void onLocationPermissionClicked(){
-        Log.d(TAG, "checkbox clicked");
+    public void onLocationPermissionClicked(View v){
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION);
     }
 
-    // TODO (9) Implement the Add Place Button click event to show  a toast message with the permission status
+    // DONE (9) Implement the Add Place Button click event to show  a toast message with the permission status
+    public void onAddPlaceBtnClicked (View v){
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, getString(R.string.location_permission_not_granted), Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, getString(R.string.location_permission_granted), Toast.LENGTH_SHORT).show();
+
+        }
+    }
 
 }
