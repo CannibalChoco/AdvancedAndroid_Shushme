@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity implements
     // Member variables
     private PlaceListAdapter mAdapter;
     private RecyclerView mRecyclerView;
-
     private GoogleApiClient client;
 
     /**
@@ -95,40 +94,6 @@ public class MainActivity extends AppCompatActivity implements
                 .build();
 
     }
-
-    // DONE (1) Implement a method called refreshPlacesData that:
-        // - Queries all the locally stored Places IDs
-        // - Calls Places.GeoDataApi.getPlaceById with that list of IDs
-        // Note: When calling Places.GeoDataApi.getPlaceById use the same GoogleApiClient created
-        // in MainActivity's onCreate (you will have to declare it as a private member)
-
-    public void refreshPlacesData (){
-        Cursor data = getContentResolver().query(
-                PlaceContract.PlaceEntry.CONTENT_URI,
-                null,
-                null,
-                null,
-                null);
-
-        if (data == null && data.getCount() == 0) return;
-
-        List<String> ids = new ArrayList<>();
-        while (data.moveToNext()){
-            ids.add(data.getString(data.getColumnIndex(PlaceContract.PlaceEntry.COLUMN_PLACE_ID)));
-        }
-
-        //DONE (8) Set the getPlaceById callBack so that onResult calls the Adapter's swapPlaces with the result
-        PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
-                .getPlaceById(client, ids.toArray(new String[ids.size()]));
-        placeResult.setResultCallback(new ResultCallback<PlaceBuffer>() {
-            @Override
-            public void onResult(@NonNull PlaceBuffer places) {
-                mAdapter.swapPlaces(places);
-            }
-        });
-    }
-
-
 
     //DONE (2) call refreshPlacesData in GoogleApiClient's onConnected and in the Add New Place button click event
 
@@ -163,6 +128,37 @@ public class MainActivity extends AppCompatActivity implements
         Log.e(TAG, "API Client Connection Failed!");
     }
 
+    // DONE (1) Implement a method called refreshPlacesData that:
+    // - Queries all the locally stored Places IDs
+    // - Calls Places.GeoDataApi.getPlaceById with that list of IDs
+    // Note: When calling Places.GeoDataApi.getPlaceById use the same GoogleApiClient created
+    // in MainActivity's onCreate (you will have to declare it as a private member)
+    public void refreshPlacesData (){
+        Cursor data = getContentResolver().query(
+                PlaceContract.PlaceEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+
+        if (data == null || data.getCount() == 0) return;
+
+        List<String> ids = new ArrayList<>();
+        while (data.moveToNext()){
+            ids.add(data.getString(data.getColumnIndex(PlaceContract.PlaceEntry.COLUMN_PLACE_ID)));
+        }
+
+        //DONE (8) Set the getPlaceById callBack so that onResult calls the Adapter's swapPlaces with the result
+        PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi.getPlaceById(client,
+                ids.toArray(new String[ids.size()]));
+        placeResult.setResultCallback(new ResultCallback<PlaceBuffer>() {
+            @Override
+            public void onResult(@NonNull PlaceBuffer places) {
+                mAdapter.swapPlaces(places);
+            }
+        });
+    }
+
     /***
      * Button Click event handler to handle clicking the "Add new location" Button
      *
@@ -187,8 +183,6 @@ public class MainActivity extends AppCompatActivity implements
         } catch (Exception e) {
             Log.e(TAG, String.format("PlacePicker Exception: %s", e.getMessage()));
         }
-
-        refreshPlacesData();
     }
 
 
@@ -216,6 +210,9 @@ public class MainActivity extends AppCompatActivity implements
             ContentValues contentValues = new ContentValues();
             contentValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, placeID);
             getContentResolver().insert(PlaceContract.PlaceEntry.CONTENT_URI, contentValues);
+
+            // Get live data information
+            refreshPlacesData();
         }
     }
 
