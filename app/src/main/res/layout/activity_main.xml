@@ -95,7 +95,6 @@
             </RelativeLayout>
         </LinearLayout>
 
-
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -127,6 +126,33 @@
 
     </LinearLayout>
 
-    <!-- TODO (9) Add the "Powered by Google" logo and a link to Google's privacy policy here -->
-    
+    <!-- DONE (9) Add the "Powered by Google" logo and a link to Google's privacy policy here -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true">
+
+        <ImageView
+            android:id="@+id/powered_by_google_Iv"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="16dp"
+            />
+
+        <TextView
+            android:id="@+id/privacy_Tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:linksClickable="true"
+            android:layout_gravity="center"
+            android:textAlignment="center"
+            android:text="@string/google_privacy_policy_link"/>
+    </LinearLayout>
+
 </RelativeLayout>

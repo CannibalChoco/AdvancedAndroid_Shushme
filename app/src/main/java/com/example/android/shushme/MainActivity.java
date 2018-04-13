@@ -27,9 +27,12 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.shushme.provider.PlaceContract;
@@ -64,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements
     private RecyclerView mRecyclerView;
     private GoogleApiClient client;
 
+    private TextView privacyTv;
+
     /**
      * Called when the activity is starting
      *
@@ -81,6 +86,11 @@ public class MainActivity extends AppCompatActivity implements
         mAdapter = new PlaceListAdapter(this, null);
         mRecyclerView.setAdapter(mAdapter);
 
+        ImageView poweredByGoogle = findViewById(R.id.powered_by_google_Iv);
+        poweredByGoogle.setImageResource(R.drawable.powered_by_google_on_white);
+
+        privacyTv = findViewById(R.id.privacy_Tv);
+        privacyTv.setMovementMethod(LinkMovementMethod.getInstance());
 
         // Build up the LocationServices API client
         // Uses the addApi method to request the LocationServices API
@@ -92,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements
                 .addApi(Places.GEO_DATA_API)
                 .enableAutoManage(this, this)
                 .build();
+
 
     }
 
@@ -156,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements
             public void onResult(@NonNull PlaceBuffer places) {
                 mAdapter.swapPlaces(places);
             }
+
         });
     }
 
@@ -202,8 +214,6 @@ public class MainActivity extends AppCompatActivity implements
             }
 
             // Extract the place information from the API
-            String placeName = place.getName().toString();
-            String placeAddress = place.getAddress().toString();
             String placeID = place.getId();
 
             // Insert a new place into DB
