@@ -23,18 +23,18 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Result;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Geofencing implements ResultCallback {
+public class Geofencing {
 
     // Constants
     public static final String TAG = Geofencing.class.getSimpleName();
@@ -59,7 +59,6 @@ public class Geofencing implements ResultCallback {
      * Uses {@link #getGeofencingRequest} to get the list of Geofences to be registered
      * Uses {@link #getGeofencePendingIntent} to get the pending intent to launch the IntentService
      * when the Geofence is triggered
-     * Triggers {@link #onResult} when the geofences have been registered successfully
      */
     public void registerAllGeofences() {
         // Check that the API client is connected and that the list has Geofences in it
@@ -68,14 +67,23 @@ public class Geofencing implements ResultCallback {
             return;
         }
         try {
-            LocationServices.GeofencingApi.addGeofences(
-                    mGoogleApiClient,
+            LocationServices.getGeofencingClient(mContext).addGeofences(
                     getGeofencingRequest(),
-                    getGeofencePendingIntent()
-            ).setResultCallback(this);
-        } catch (SecurityException securityException) {
-            // Catch exception generated if the app does not use ACCESS_FINE_LOCATION permission.
-            Log.e(TAG, securityException.getMessage());
+                    getGeofencePendingIntent())
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.v(TAG, "Success adding geofences!");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.v(TAG, "Failed adding geofences!");
+                        }
+                    });
+        } catch (SecurityException e) {
+            Log.v(TAG, e.getMessage());
         }
     }
 
@@ -84,21 +92,27 @@ public class Geofencing implements ResultCallback {
      * Uses {@code #mGoogleApiClient} to connect to Google Place Services
      * Uses {@link #getGeofencePendingIntent} to get the pending intent passed when
      * registering the Geofences in the first place
-     * Triggers {@link #onResult} when the geofences have been unregistered successfully
      */
     public void unRegisterAllGeofences() {
         if (mGoogleApiClient == null || !mGoogleApiClient.isConnected()) {
             return;
         }
         try {
-            LocationServices.GeofencingApi.removeGeofences(
-                    mGoogleApiClient,
-                    // This is the same pending intent that was used in registerGeofences
-                    getGeofencePendingIntent()
-            ).setResultCallback(this);
-        } catch (SecurityException securityException) {
-            // Catch exception generated if the app does not use ACCESS_FINE_LOCATION permission.
-            Log.e(TAG, securityException.getMessage());
+            LocationServices.getGeofencingClient(mContext).removeGeofences(getGeofencePendingIntent())
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.v(TAG, "Success removing geofences!");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.v(TAG, "Failed removing geofences!");
+                        }
+                    });
+        } catch (SecurityException e) {
+            Log.v(TAG, e.getMessage());
         }
     }
 
@@ -158,11 +172,4 @@ public class Geofencing implements ResultCallback {
                 FLAG_UPDATE_CURRENT);
         return mGeofencePendingIntent;
     }
-
-    @Override
-    public void onResult(@NonNull Result result) {
-        Log.e(TAG, String.format("Error adding/removing geofence : %s",
-                result.getStatus().toString()));
-    }
-
 }
