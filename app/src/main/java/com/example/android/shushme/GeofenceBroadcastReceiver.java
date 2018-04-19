@@ -16,6 +16,7 @@ package com.example.android.shushme;
 * limitations under the License.
 */
 
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
@@ -35,7 +36,8 @@ import com.google.android.gms.location.GeofencingEvent;
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
     public static final String TAG = GeofenceBroadcastReceiver.class.getSimpleName();
-    private static final String NOTIFICATION_CHANNEL_VOLUME = "volume";
+    private static final String NOTIFICATION_CHANNEL_VOLUME_ID = "volume_notification_channel";
+
 
     /***
      * Handles the Broadcast message sent when the Geofence Transition is triggered
@@ -47,7 +49,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
      */
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i(TAG, "onReceive called");
         // DONE (4) Use GeofencingEvent.fromIntent to retrieve the GeofencingEvent that caused the transition
         GeofencingEvent event = GeofencingEvent.fromIntent(intent);
 
@@ -66,48 +67,68 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         sendNotification(context, geofencingTransition);
     }
 
-    private void setRingerMode (Context context, int mode){
-        NotificationManager nm = (NotificationManager) context
-                .getSystemService(Context.NOTIFICATION_SERVICE);
+    private void setRingerMode(Context context, int mode) {
+        NotificationManager nm = (NotificationManager)
+                context.getSystemService(Context.NOTIFICATION_SERVICE);
+        // Check for DND permissions for API 24+
+        if (android.os.Build.VERSION.SDK_INT < 24 ||
+                (android.os.Build.VERSION.SDK_INT >= 24 &&
+                        nm.isNotificationPolicyAccessGranted())) {
 
-        if (Build.VERSION.SDK_INT < 24 ||
-                (Build.VERSION.SDK_INT >= 24 && !nm.isNotificationPolicyAccessGranted())){
-            AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-            am.setRingerMode(mode);
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            audioManager.setRingerMode(mode);
         }
     }
 
     private void sendNotification(Context context, int transitionType){
+
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(
+                Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_VOLUME_ID,
+                    context.getString(R.string.main_notification_channel_name),
+                    NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context,
+                NOTIFICATION_CHANNEL_VOLUME_ID);
+
+        if (transitionType == Geofence.GEOFENCE_TRANSITION_ENTER){
+             notificationBuilder.setSmallIcon(R.drawable.ic_volume_off_white_24dp)
+                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
+                            R.drawable.ic_volume_off_white_24dp))
+                    .setContentTitle(context.getString(R.string.silent_mode_activated));
+        } else if (transitionType == Geofence.GEOFENCE_TRANSITION_EXIT){
+            notificationBuilder.setSmallIcon(R.drawable.ic_volume_up_white_24dp)
+                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
+                            R.drawable.ic_volume_up_white_24dp))
+                    .setContentTitle(context.getString(R.string.normal_mode_activated));
+        }
+
+        notificationBuilder.setContentText(context.getString(R.string.touch_to_relaunch));
+        notificationBuilder.setContentIntent(getContentIntent(context));
+        notificationBuilder.setAutoCancel(true);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            notificationBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        }
+
+        notificationManager.notify(0, notificationBuilder.build());
+    }
+
+    PendingIntent getContentIntent (Context context){
+
         Intent notificationIntent = new Intent(context, MainActivity.class);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
         stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(notificationIntent);
 
-        PendingIntent notificationPendingIntent = stackBuilder.getPendingIntent(0,
+        return stackBuilder.getPendingIntent(0,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context,
-                NOTIFICATION_CHANNEL_VOLUME);
-
-        if (transitionType == Geofence.GEOFENCE_TRANSITION_ENTER){
-             builder.setSmallIcon(R.drawable.ic_volume_off_white_24dp)
-                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
-                            R.drawable.ic_volume_off_white_24dp))
-                    .setContentTitle(context.getString(R.string.silent_mode_activated));
-        } else if (transitionType == Geofence.GEOFENCE_TRANSITION_EXIT){
-            builder.setSmallIcon(R.drawable.ic_volume_up_white_24dp)
-                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
-                            R.drawable.ic_volume_up_white_24dp))
-                    .setContentTitle(context.getString(R.string.normal_mode_activated));
-        }
-
-        builder.setContentText(context.getString(R.string.touch_to_relaunch));
-        builder.setContentIntent(notificationPendingIntent);
-        builder.setAutoCancel(true);
-
-        NotificationManager nm = (NotificationManager) context.getSystemService(
-                Context.NOTIFICATION_SERVICE);
-        nm.notify(0, builder.build());
     }
 }

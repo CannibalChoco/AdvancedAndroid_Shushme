@@ -14,4 +14,8 @@
     <string name="silent_mode_activated">Silent mode activated</string>
     <string name="normal_mode_activated">Normal mode activated</string>
     <string name="touch_to_relaunch">Touch to relaunch</string>
+
+    <!-- Notification channels for O+ -->
+    <string name="main_notification_channel_name">Primary</string>
+
 </resources>
